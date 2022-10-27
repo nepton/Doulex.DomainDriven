@@ -7,56 +7,45 @@
         <LangVersion>10</LangVersion>
     </PropertyGroup>
 
-
     <PropertyGroup>
         <PackageId>Doulex.DomainDriven.Repo.EFCore</PackageId>
-        <VersionPrefix>1.0.0</VersionPrefix>
         <Description>The EFCore implement of Domain Driven Design Framework</Description>
         <PackageTags>doulex;ddd;domain;framework;ef;efcore;entity framework;</PackageTags>
-        <PackageIcon>icon.png</PackageIcon>
-    </PropertyGroup>
+        <PackageProjectUrl>https://github.com/nepton/Doulex.DomainDriven</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/nepton/Doulex.DomainDriven.git</RepositoryUrl>
 
-    <PropertyGroup>
-        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-        <PackageProjectUrl>https://github.com/nepton/doulex-domain-driven</PackageProjectUrl>
-        <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
         <Authors>Nepton Liu</Authors>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <IncludeSymbols>True</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <!--DEBUG无需发布, 解决保存问题-->
-        <NuGetPublishLocation>.</NuGetPublishLocation>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <NuGetPublishType>remote</NuGetPublishType>
-        <NuGetPublishLocation>https://api.nuget.org/v3/index.json</NuGetPublishLocation>
+    <PropertyGroup Condition="'$(APPVEYOR)' == 'true'">
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SS.NuGet.Publish" Version="1.0.1912.22">
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="icon.png" Pack="true" PackagePath="\" />
+        <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+        <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Doulex.DomainDriven" Version="1.0.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.4" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="icon.png">
-        <Pack>true</Pack>
-        <PackagePath>\</PackagePath>
-      </None>
+      <ProjectReference Include="..\Doulex.DomainDriven\Doulex.DomainDriven.csproj" />
     </ItemGroup>
-
 </Project>
