@@ -26,16 +26,6 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     }
 
     /// <summary>
-    /// Create a strategy for saving changes
-    /// </summary>
-    /// <returns></returns>
-    public IStrategy CreateExecutionStrategy()
-    {
-        return new EntityFrameworkCoreStrategy(_context.Database.CreateExecutionStrategy());
-    }
-
-
-    /// <summary>
     /// Indicate whether the transaction is active
     /// </summary>
     public virtual bool HasActiveTransaction => _context.Database.CurrentTransaction != null;

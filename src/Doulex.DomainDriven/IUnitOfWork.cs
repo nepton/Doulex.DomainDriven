@@ -13,12 +13,6 @@ public interface IUnitOfWork
     Task SaveChangesAsync(CancellationToken cancel = default);
 
     /// <summary>
-    /// Create a strategy for saving changes
-    /// </summary>
-    /// <returns></returns>
-    IStrategy CreateExecutionStrategy();
-
-    /// <summary>
     /// Begin a transaction
     /// </summary>
     /// <param name="cancellationToken"></param>
