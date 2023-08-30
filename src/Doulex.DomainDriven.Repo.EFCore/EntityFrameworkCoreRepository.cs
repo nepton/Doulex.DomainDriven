@@ -108,6 +108,47 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     }
 
     /// <summary>
+    /// Get All entities from the repository that match the given predicate
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="skip">Indicate that how many records will be skipped</param>
+    /// <param name="take">Indicate that how many records will be taken</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int? skip = null, int? take = null, CancellationToken cancel = default)
+    {
+        var query = _dbSet.Where(predicate);
+
+        if (skip.HasValue)
+            query = query.Skip(skip.Value);
+
+        if (take.HasValue)
+            query = query.Take(take.Value);
+
+        return query.ToArrayAsync(cancel);
+    }
+
+    /// <summary>
+    /// Get All entities from the repository
+    /// </summary>
+    /// <param name="skip">Indicate that how many records will be skipped</param>
+    /// <param name="take">Indicate that how many records will be taken</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<TAggregateRoot[]> GetAllAsync(int? skip = null, int? take = null, CancellationToken cancel = default)
+    {
+        var query = _dbSet.AsQueryable();
+
+        if (skip.HasValue)
+            query = query.Skip(skip.Value);
+
+        if (take.HasValue)
+            query = query.Take(take.Value);
+
+        return query.ToArrayAsync(cancel);
+    }
+
+    /// <summary>
     /// Determine whether the entity exists in the repository
     /// </summary>
     /// <param name="id">The id to find in db</param>
