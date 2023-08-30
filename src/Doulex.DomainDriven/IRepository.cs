@@ -64,7 +64,15 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     /// <param name="take">Indicate that how many records will be taken</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int? skip = null, int? take = null, CancellationToken cancel = default);
+    Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int skip, int take, CancellationToken cancel = default);
+
+    /// <summary>
+    /// Get All entities from the repository that match the given predicate
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default);
 
     /// <summary>
     /// Get All entities from the repository
@@ -73,7 +81,14 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     /// <param name="take">Indicate that how many records will be taken</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    Task<TAggregateRoot[]> GetAllAsync(int? skip = null, int? take = null, CancellationToken cancel = default);
+    Task<TAggregateRoot[]> GetAllAsync(int skip, int take, CancellationToken cancel = default);
+
+    /// <summary>
+    /// Get all entities from the repository
+    /// </summary>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    Task<TAggregateRoot[]> GetAllAsync(CancellationToken cancel = default);
 
     /// <summary>
     /// Determine whether the entity exists in the repository

@@ -115,17 +115,21 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="take">Indicate that how many records will be taken</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int? skip = null, int? take = null, CancellationToken cancel = default)
+    public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int skip, int take, CancellationToken cancel = default)
     {
         var query = _dbSet.Where(predicate);
+        return query.Skip(skip).Take(take).ToArrayAsync(cancel);
+    }
 
-        if (skip.HasValue)
-            query = query.Skip(skip.Value);
-
-        if (take.HasValue)
-            query = query.Take(take.Value);
-
-        return query.ToArrayAsync(cancel);
+    /// <summary>
+    /// Get All entities from the repository that match the given predicate
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    {
+        return _dbSet.Where(predicate).ToArrayAsync(cancel);
     }
 
     /// <summary>
@@ -135,17 +139,19 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="take">Indicate that how many records will be taken</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<TAggregateRoot[]> GetAllAsync(int? skip = null, int? take = null, CancellationToken cancel = default)
+    public Task<TAggregateRoot[]> GetAllAsync(int skip, int take, CancellationToken cancel = default)
     {
-        var query = _dbSet.AsQueryable();
+        return _dbSet.Skip(skip).Take(take).ToArrayAsync(cancel);
+    }
 
-        if (skip.HasValue)
-            query = query.Skip(skip.Value);
-
-        if (take.HasValue)
-            query = query.Take(take.Value);
-
-        return query.ToArrayAsync(cancel);
+    /// <summary>
+    /// Get all entities from the repository
+    /// </summary>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<TAggregateRoot[]> GetAllAsync(CancellationToken cancel = default)
+    {
+        return _dbSet.ToArrayAsync(cancel);
     }
 
     /// <summary>
