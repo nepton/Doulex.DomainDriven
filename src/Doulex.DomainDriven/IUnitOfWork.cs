@@ -10,7 +10,7 @@ public interface IUnitOfWork
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    Task SaveChangesAsync(CancellationToken cancel = default);
+    Task<int> SaveChangesAsync(CancellationToken cancel = default);
 
     /// <summary>
     /// Begin a transaction

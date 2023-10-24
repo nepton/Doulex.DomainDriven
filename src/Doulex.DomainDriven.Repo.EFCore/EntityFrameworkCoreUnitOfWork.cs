@@ -20,7 +20,7 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public virtual Task SaveChangesAsync(CancellationToken cancel = default)
+    public virtual Task<int> SaveChangesAsync(CancellationToken cancel = default)
     {
         return _context.SaveChangesAsync(cancel);
     }
