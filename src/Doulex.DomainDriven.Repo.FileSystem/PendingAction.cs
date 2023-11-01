@@ -1,4 +1,4 @@
-namespace Doulex.DomainDriven.Repo.FS;
+namespace Doulex.DomainDriven.Repo.FileSystem;
 
 internal enum PendingAction
 {

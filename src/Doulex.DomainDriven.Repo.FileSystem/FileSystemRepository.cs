@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Doulex.DomainDriven.Repo.FS;
+namespace Doulex.DomainDriven.Repo.FileSystem;
 
 public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregateRoot, TKey>
     where TAggregateRoot : class, IAggregateRoot, IEntity<TKey>

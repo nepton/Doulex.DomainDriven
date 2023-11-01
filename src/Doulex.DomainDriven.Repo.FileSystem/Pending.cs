@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Doulex.DomainDriven.Repo.FS;
+namespace Doulex.DomainDriven.Repo.FileSystem;
 
 /// <summary>
 /// 在 Add 或 Update 时，临时保存到 UnitOfWork 的队列中, 等待 SaveChangesAsync 时再进行持久化

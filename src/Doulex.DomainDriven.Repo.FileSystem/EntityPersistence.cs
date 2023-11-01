@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace Doulex.DomainDriven.Repo.FS;
+namespace Doulex.DomainDriven.Repo.FileSystem;
 
 /// <summary>
 /// 负责实体对象读写

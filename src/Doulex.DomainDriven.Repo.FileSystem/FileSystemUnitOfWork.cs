@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Doulex.DomainDriven.Repo.FS;
+namespace Doulex.DomainDriven.Repo.FileSystem;
 
 public class FileSystemUnitOfWork : IUnitOfWork
 {

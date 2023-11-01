@@ -1,7 +1,7 @@
 version: '{build}'
 
 environment:
-  VERSION: 1.3.0
+  VERSION: 1.3.1
   TARGET_CONFIGURATION: Release
 
 image: Visual Studio 2022
@@ -28,7 +28,7 @@ build_script:
 
     dotnet pack .\src\Doulex.DomainDriven.Repo.EFCore -c %TARGET_CONFIGURATION% -p:VersionPrefix=%VERSION%
 
-    dotnet pack .\src\Doulex.DomainDriven.Repo.FS -c %TARGET_CONFIGURATION% -p:VersionPrefix=%VERSION%
+    dotnet pack .\src\Doulex.DomainDriven.Repo.FileSystem -c %TARGET_CONFIGURATION% -p:VersionPrefix=%VERSION%
 
 artifacts:
   - path: "src/**/*.nupkg"

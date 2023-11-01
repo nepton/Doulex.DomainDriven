@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using Force.DeepCloner;
 
-namespace Doulex.DomainDriven.Repo.FS;
+namespace Doulex.DomainDriven.Repo.FileSystem;
 
 /// <summary>
 /// 负责实体对象缓存
