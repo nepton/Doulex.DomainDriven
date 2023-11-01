@@ -1,5 +1,6 @@
 version: '{build}'
 
+
 environment:
   VERSION: 1.3.1
   TARGET_CONFIGURATION: Release
