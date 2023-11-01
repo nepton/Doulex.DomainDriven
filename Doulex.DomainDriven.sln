@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doulex.DomainDriven.Repo.EF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doulex.DomainDriven.Repo.FileSystem", "src\Doulex.DomainDriven.Repo.FileSystem\Doulex.DomainDriven.Repo.FileSystem.csproj", "{467CDA21-99B6-4B6C-941A-ADD608493284}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repo.FS.Tests", "tests\Repo.FS.Tests\Repo.FS.Tests.csproj", "{9DD95633-F585-49A2-95AE-B8BA9EC663DE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Repo.FileSystem.Tests", "tests\Repo.FileSystem.Tests\Repo.FileSystem.Tests.csproj", "{9DD95633-F585-49A2-95AE-B8BA9EC663DE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
