@@ -24,6 +24,14 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     Task AddAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default);
 
     /// <summary>
+    /// Add new entity to the repository or update the entity in the repository if the id of entity has existed 
+    /// </summary>
+    /// <param name="aggregateRoot"></param>
+    /// <param name="cancel"></param>
+    /// <returns>Return true if the entity has been added, or return false if the entity has been updated</returns>
+    Task<bool> AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default);
+
+    /// <summary>
     /// Update the exists entity in the repository
     /// </summary>
     /// <param name="aggregateRoot"></param>
@@ -39,13 +47,30 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     Task RemoveAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default);
 
     /// <summary>
+    /// Remove the entity from the repository
+    /// </summary>
+    /// <param name="id">The id of entity</param>
+    /// <param name="cancel">The cancellation token</param>
+    /// <returns>Return true if the entity has been removed, false if the entity cannot be found</returns>
+    Task<bool> RemoveAsync(TKey id, CancellationToken cancel = default);
+
+    /// <summary>
     /// Find the entity by the given key
     /// The different with FindAsync is that FindAsync is search local cache in first, if not found, then search database. 
     /// </summary>
     /// <param name="id"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
+    [Obsolete("Use GetAsync instead")]
     Task<TAggregateRoot?> FindAsync(TKey id, CancellationToken cancel = default);
+
+    /// <summary>
+    /// Find the entity by the given key 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    Task<TAggregateRoot?> GetAsync(TKey id, CancellationToken cancel = default);
 
     /// <summary>
     /// Find the entity by precondition

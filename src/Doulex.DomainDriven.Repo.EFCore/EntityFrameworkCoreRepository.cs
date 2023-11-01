@@ -38,9 +38,9 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
 
     #region Asynchronous Methods
 
-    protected virtual Task OnChangingAsync(TAggregateRoot aggregateRoot, ActionType actionType, CancellationToken cancellationToken)
+    protected virtual Task<bool> OnChangingAsync(TAggregateRoot aggregateRoot, ActionType actionType, CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     protected virtual Task OnChangedAsync(TAggregateRoot aggregateRoot, ActionType actionType, CancellationToken cancellationToken)
@@ -58,6 +58,25 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
         await OnChangingAsync(aggregateRoot, ActionType.Add, cancel);
         await _dbSet.AddAsync(aggregateRoot, cancel);
         await OnChangedAsync(aggregateRoot, ActionType.Add, cancel);
+    }
+
+    /// <summary>
+    /// Add new entity to the repository or update the entity in the repository if the id of entity has existed 
+    /// </summary>
+    /// <param name="aggregateRoot"></param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public async Task<bool> AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    {
+        var exists = await ExistsAsync(aggregateRoot.Id, cancel);
+        if (exists)
+        {
+            await UpdateAsync(aggregateRoot, cancel);
+            return false;
+        }
+
+        await AddAsync(aggregateRoot, cancel);
+        return true;
     }
 
     /// <summary>
@@ -86,12 +105,40 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     }
 
     /// <summary>
+    /// Remove the entity from the repository
+    /// </summary>
+    /// <param name="id">The id of entity</param>
+    /// <param name="cancel">The cancellation token</param>
+    /// <returns>Return true if the entity has been removed, false if the entity cannot be found</returns>
+    public virtual async Task<bool> RemoveAsync(TKey id, CancellationToken cancel = default)
+    {
+        var entity = await GetAsync(id, cancel);
+        if (entity == null)
+            return false;
+
+        await RemoveAsync(entity, cancel);
+        return true;
+    }
+
+    /// <summary>
     /// Find the entity by the given key
     /// </summary>
     /// <param name="id"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
+    [Obsolete("Use GetAsync instead")]
     public virtual Task<TAggregateRoot?> FindAsync(TKey id, CancellationToken cancel = default)
+    {
+        return _dbSet.FindAsync(new object?[] {id}, cancel).AsTask();
+    }
+
+    /// <summary>
+    /// Find the entity by the given key 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public virtual Task<TAggregateRoot?> GetAsync(TKey id, CancellationToken cancel = default)
     {
         return _dbSet.FindAsync(new object?[] {id}, cancel).AsTask();
     }
