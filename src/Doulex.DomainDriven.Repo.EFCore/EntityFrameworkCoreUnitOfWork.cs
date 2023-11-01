@@ -31,6 +31,12 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     public virtual bool HasActiveTransaction => _context.Database.CurrentTransaction != null;
 
     /// <summary>
+    /// Indicate whether the unit of work support transaction
+    /// </summary>
+    /// <returns></returns>
+    public bool SupportTransaction => true;
+
+    /// <summary>
     /// Begin a transaction
     /// </summary>
     /// <param name="cancellationToken"></param>

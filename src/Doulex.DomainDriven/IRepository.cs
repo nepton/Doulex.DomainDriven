@@ -29,7 +29,7 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
     /// <returns>Return true if the entity has been added, or return false if the entity has been updated</returns>
-    Task<bool> AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default);
+    Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default);
 
     /// <summary>
     /// Update the exists entity in the repository
@@ -52,7 +52,7 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     /// <param name="id">The id of entity</param>
     /// <param name="cancel">The cancellation token</param>
     /// <returns>Return true if the entity has been removed, false if the entity cannot be found</returns>
-    Task<bool> RemoveAsync(TKey id, CancellationToken cancel = default);
+    Task RemoveAsync(TKey id, CancellationToken cancel = default);
 
     /// <summary>
     /// Find the entity by the given key

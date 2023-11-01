@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doulex.DomainDriven", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doulex.DomainDriven.Repo.EFCore", "src\Doulex.DomainDriven.Repo.EFCore\Doulex.DomainDriven.Repo.EFCore.csproj", "{10BA3C68-F6D0-4DCB-B490-C21341E277FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doulex.DomainDriven.Repo.FS", "src\Doulex.DomainDriven.Repo.FS\Doulex.DomainDriven.Repo.FS.csproj", "{467CDA21-99B6-4B6C-941A-ADD608493284}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{10BA3C68-F6D0-4DCB-B490-C21341E277FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10BA3C68-F6D0-4DCB-B490-C21341E277FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10BA3C68-F6D0-4DCB-B490-C21341E277FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{467CDA21-99B6-4B6C-941A-ADD608493284}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{467CDA21-99B6-4B6C-941A-ADD608493284}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{467CDA21-99B6-4B6C-941A-ADD608493284}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{467CDA21-99B6-4B6C-941A-ADD608493284}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +38,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2B530C48-5EDB-4232-8F90-FB363BDE5916} = {5309EC62-08D3-4CB5-B295-0D389CFBDDA1}
 		{10BA3C68-F6D0-4DCB-B490-C21341E277FD} = {5309EC62-08D3-4CB5-B295-0D389CFBDDA1}
+		{467CDA21-99B6-4B6C-941A-ADD608493284} = {5309EC62-08D3-4CB5-B295-0D389CFBDDA1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3CA6DE1A-C1A0-4BE1-B7BF-D3052CD20581}

@@ -31,4 +31,10 @@ public interface IUnitOfWork
     /// Indicate whether the transaction is active
     /// </summary>
     bool HasActiveTransaction { get; }
+
+    /// <summary>
+    /// Indicate whether the unit of work support transaction
+    /// </summary>
+    /// <returns></returns>
+    bool SupportTransaction { get; }
 }

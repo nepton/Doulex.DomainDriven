@@ -1,51 +1,26 @@
-﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
-// ReSharper disable VirtualMemberNeverOverridden.Global
+namespace Doulex.DomainDriven.Repo.FS;
 
-namespace Doulex.DomainDriven.Repo.EFCore;
-
-/// <summary>
-/// The repository implementation for Entity Framework Core
-/// This class is just a wrapper for the Entity Framework Core repository
-/// To help users to create their own repository easily, This is NOT A CONTRACT
-/// </summary>
-/// <remarks>
-/// 
-/// User can inherit from this class to create their own repository
-/// So that in interface IUserRepository, we recommend to use standard function to define CRUD
-/// 
-/// class UserRepository : EntityFrameworkCoreRepository[User], IUserRepository
-/// {
-/// }
-/// 
-/// </remarks>
-/// <typeparam name="TAggregateRoot"></typeparam>
-/// <typeparam name="TKey"></typeparam>
-public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<TAggregateRoot, TKey>
+public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregateRoot, TKey>
     where TAggregateRoot : class, IAggregateRoot, IEntity<TKey>
     where TKey : notnull
 {
-    private readonly DbSet<TAggregateRoot> _dbSet;
+    private readonly FileSystemUnitOfWork _unitOfWork;
+    private readonly EntityCaching    _caching;
 
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    protected EntityFrameworkCoreRepository(DbContext context)
+    public FileSystemRepository(FileSystemUnitOfWork unitOfWork)
     {
-        _dbSet = context.Set<TAggregateRoot>();
+        _unitOfWork = unitOfWork;
+        _caching    = new(unitOfWork.Options);
     }
 
-    #region Asynchronous Methods
-
-    protected virtual Task<bool> OnChangingAsync(TAggregateRoot aggregateRoot, ActionType actionType, CancellationToken cancellationToken)
+    public Task ApplyChangesAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult(true);
-    }
-
-    protected virtual Task OnChangedAsync(TAggregateRoot aggregateRoot, ActionType actionType, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
+        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -53,11 +28,10 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
-    public virtual async Task AddAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    public Task AddAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
     {
-        await OnChangingAsync(aggregateRoot, ActionType.Add, cancel);
-        await _dbSet.AddAsync(aggregateRoot, cancel);
-        await OnChangedAsync(aggregateRoot, ActionType.Add, cancel);
+        _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.Add, aggregateRoot);
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -65,17 +39,11 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
-    /// <returns></returns>
-    public async Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    /// <returns>Return true if the entity has been added, or return false if the entity has been updated</returns>
+    public Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
     {
-        var exists = await ExistsAsync(aggregateRoot.Id, cancel);
-        if (exists)
-        {
-            await UpdateAsync(aggregateRoot, cancel);
-            return;
-        }
-
-        await AddAsync(aggregateRoot, cancel);
+        _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.AddOrUpdate, aggregateRoot);
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -84,11 +52,10 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public virtual async Task UpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    public Task UpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
     {
-        await OnChangingAsync(aggregateRoot, ActionType.Update, cancel);
-        _dbSet.Update(aggregateRoot);
-        await OnChangedAsync(aggregateRoot, ActionType.Update, cancel);
+        _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.Update, aggregateRoot);
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -96,11 +63,10 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
-    public virtual async Task RemoveAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    public Task RemoveAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
     {
-        await OnChangingAsync(aggregateRoot, ActionType.Remove, cancel);
-        _dbSet.Remove(aggregateRoot);
-        await OnChangedAsync(aggregateRoot, ActionType.Remove, cancel);
+        _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.Remove, aggregateRoot.Id);
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -109,25 +75,22 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="id">The id of entity</param>
     /// <param name="cancel">The cancellation token</param>
     /// <returns>Return true if the entity has been removed, false if the entity cannot be found</returns>
-    public virtual async Task RemoveAsync(TKey id, CancellationToken cancel = default)
+    public Task RemoveAsync(TKey id, CancellationToken cancel = default)
     {
-        var entity = await GetAsync(id, cancel);
-        if (entity == null)
-            return;
-
-        await RemoveAsync(entity, cancel);
+        _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.Remove, id);
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Find the entity by the given key
+    /// The different with FindAsync is that FindAsync is search local cache in first, if not found, then search database. 
     /// </summary>
     /// <param name="id"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    [Obsolete("Use GetAsync instead")]
-    public virtual Task<TAggregateRoot?> FindAsync(TKey id, CancellationToken cancel = default)
+    public Task<TAggregateRoot?> FindAsync(TKey id, CancellationToken cancel = default)
     {
-        return _dbSet.FindAsync(new object?[] {id}, cancel).AsTask();
+        return GetAsync(id, cancel);
     }
 
     /// <summary>
@@ -136,20 +99,26 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="id"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public virtual Task<TAggregateRoot?> GetAsync(TKey id, CancellationToken cancel = default)
+    public Task<TAggregateRoot?> GetAsync(TKey id, CancellationToken cancel = default)
     {
-        return _dbSet.FindAsync(new object?[] {id}, cancel).AsTask();
+        var agg = _caching.Get<TAggregateRoot>(id);
+        return Task.FromResult(agg);
     }
 
     /// <summary>
     /// Find the entity by precondition
+    /// The different with FindAsync is that FindAsync is search local cache in first, if not found, then search database. But GetAsync will search database directly. 
     /// </summary>
     /// <param name="predicate">The condition of query</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
     public Task<TAggregateRoot?> GetAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.FirstOrDefaultAsync(predicate, cancel);
+        // convert lambda expression to func
+        var func = predicate.Compile();
+        var agg  = _caching.Get(func);
+
+        return Task.FromResult(agg);
     }
 
     /// <summary>
@@ -162,8 +131,9 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <returns></returns>
     public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int skip, int take, CancellationToken cancel = default)
     {
-        var query = _dbSet.Where(predicate);
-        return query.Skip(skip).Take(take).ToArrayAsync(cancel);
+        var func = predicate.Compile();
+        var q    = _caching.GetAll(func, skip, take);
+        return Task.FromResult(q);
     }
 
     /// <summary>
@@ -174,7 +144,9 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <returns></returns>
     public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.Where(predicate).ToArrayAsync(cancel);
+        var func = predicate.Compile();
+        var q    = _caching.GetAll(func, null, null);
+        return Task.FromResult(q);
     }
 
     /// <summary>
@@ -186,7 +158,8 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <returns></returns>
     public Task<TAggregateRoot[]> GetAllAsync(int skip, int take, CancellationToken cancel = default)
     {
-        return _dbSet.Skip(skip).Take(take).ToArrayAsync(cancel);
+        var q = _caching.GetAll<TAggregateRoot>(null, skip, take);
+        return Task.FromResult(q);
     }
 
     /// <summary>
@@ -196,7 +169,8 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <returns></returns>
     public Task<TAggregateRoot[]> GetAllAsync(CancellationToken cancel = default)
     {
-        return _dbSet.ToArrayAsync(cancel);
+        var q = _caching.GetAll<TAggregateRoot>(null, null, null);
+        return Task.FromResult(q);
     }
 
     /// <summary>
@@ -207,7 +181,8 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <returns>Return true if entity has existed</returns>
     public Task<bool> ExistsAsync(TKey id, CancellationToken cancel = default)
     {
-        return _dbSet.AnyAsync(x => x.Id.Equals(id), cancel);
+        var agg = _caching.Get<TAggregateRoot>(id);
+        return Task.FromResult(agg != null);
     }
 
     /// <summary>
@@ -218,8 +193,8 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <returns>Return true if entity has existed</returns>
     public Task<bool> ExistsAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.AnyAsync(predicate, cancel);
+        var func = predicate.Compile();
+        var agg  = _caching.Get(func);
+        return Task.FromResult(agg != null);
     }
-
-    #endregion
 }
