@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,6 +86,24 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     public Task RemoveAsync(TKey id, CancellationToken cancel = default)
     {
         _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.Remove, id);
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Remove the entity from the repository
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task RemoveAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    {
+        var func = predicate.Compile();
+        var aggs = _caching.GetAll(func, null, null);
+        foreach (var agg in aggs)
+        {
+            _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.Remove, agg.Id);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -203,5 +222,14 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
         var func = predicate.Compile();
         var agg  = _caching.Get(func);
         return Task.FromResult(agg != null);
+    }
+
+    /// <summary>
+    /// Get the queryable of entities in the repository
+    /// </summary>
+    /// <returns></returns>
+    public IQueryable<TAggregateRoot> Queryable()
+    {
+        throw new NotImplementedException();
     }
 }

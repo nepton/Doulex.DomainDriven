@@ -3,6 +3,8 @@
 	<s:String x:Key="/Default/CodeInspection/PencilsConfiguration/FiltersState/=SpellingFilter/@EntryIndexedValue">On</s:String>
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;Assembly Path="C:\Users\Nepton\.nuget\packages\doulex.domaindriven\1.0.0\lib\netstandard2.1\Doulex.DomainDriven.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\Nepton\.nuget\packages\z.entityframework.extensions.efcore\6.100.0.5\lib\net6.0\Z.EntityFramework.Extensions.EFCore.dll" /&gt;&#xD;
+  &lt;Assembly Path="C:\Users\Nepton\.nuget\packages\z.entityframework.plus.efcore\6.100.0.5\lib\net6.0\Z.EntityFramework.Plus.EFCore.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
 	<s:String x:Key="/Default/Environment/Highlighting/HighlightingMode/@EntryValue">OnlyMarkers</s:String>
 	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\Nepton\AppData\Local\JetBrains\Rider2023.2\resharper-host\temp\Rider\vAny\CoverageData\_Doulex.DomainDriven.1136689436\Snapshot\snapshot.utdcvr</s:String>

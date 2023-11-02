@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Z.EntityFramework.Plus;
 
 // ReSharper disable VirtualMemberNeverOverridden.Global
 
@@ -29,7 +30,7 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     private readonly DbSet<TAggregateRoot> _dbSet;
 
     /// <summary>
-    /// 构造函数
+    /// ctor
     /// </summary>
     protected EntityFrameworkCoreRepository(DbContext context)
     {
@@ -38,16 +39,6 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
 
     #region Asynchronous Methods
 
-    protected virtual Task<bool> OnChangingAsync(TAggregateRoot aggregateRoot, ActionType actionType, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(true);
-    }
-
-    protected virtual Task OnChangedAsync(TAggregateRoot aggregateRoot, ActionType actionType, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
-
     /// <summary>
     /// Add new entity to the repository
     /// </summary>
@@ -55,9 +46,7 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="cancel"></param>
     public virtual async Task AddAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
     {
-        await OnChangingAsync(aggregateRoot, ActionType.Add, cancel);
         await _dbSet.AddAsync(aggregateRoot, cancel);
-        await OnChangedAsync(aggregateRoot, ActionType.Add, cancel);
     }
 
     /// <summary>
@@ -83,11 +72,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public virtual async Task UpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    public virtual Task UpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
     {
-        await OnChangingAsync(aggregateRoot, ActionType.Update, cancel);
-        _dbSet.Update(aggregateRoot);
-        await OnChangedAsync(aggregateRoot, ActionType.Update, cancel);
+        return Task.Run(() => _dbSet.Update(aggregateRoot), cancel);
+    }
+
+    public virtual async Task UpdateAsync(
+        Expression<Func<TAggregateRoot, bool>>           predicate,
+        Expression<Func<TAggregateRoot, TAggregateRoot>> updateFactory,
+        CancellationToken                                cancel = default)
+    {
+        await _dbSet.Where(predicate).UpdateAsync(updateFactory, cancel);
     }
 
     /// <summary>
@@ -95,11 +90,9 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
-    public virtual async Task RemoveAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    public virtual Task RemoveAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
     {
-        await OnChangingAsync(aggregateRoot, ActionType.Remove, cancel);
-        _dbSet.Remove(aggregateRoot);
-        await OnChangedAsync(aggregateRoot, ActionType.Remove, cancel);
+        return Task.Run(() => _dbSet.Remove(aggregateRoot), cancel);
     }
 
     /// <summary>
@@ -108,13 +101,20 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="id">The id of entity</param>
     /// <param name="cancel">The cancellation token</param>
     /// <returns>Return true if the entity has been removed, false if the entity cannot be found</returns>
-    public virtual async Task RemoveAsync(TKey id, CancellationToken cancel = default)
+    public virtual Task RemoveAsync(TKey id, CancellationToken cancel = default)
     {
-        var entity = await GetAsync(id, cancel);
-        if (entity == null)
-            return;
+        return _dbSet.Where(x => x.Id.Equals(id)).DeleteAsync(cancel);
+    }
 
-        await RemoveAsync(entity, cancel);
+    /// <summary>
+    /// Remove the entity from the repository
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task RemoveAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    {
+        return _dbSet.Where(predicate).DeleteAsync(cancel);
     }
 
     /// <summary>
@@ -221,4 +221,13 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     }
 
     #endregion
+
+    /// <summary>
+    /// Get the queryable object of the repository
+    /// </summary>
+    /// <returns></returns>
+    public IQueryable<TAggregateRoot> Queryable()
+    {
+        return _dbSet.AsNoTracking().AsQueryable();
+    }
 }
