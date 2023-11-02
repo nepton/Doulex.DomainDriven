@@ -228,7 +228,7 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     /// Get the queryable of entities in the repository
     /// </summary>
     /// <returns></returns>
-    public IQueryable<TAggregateRoot> Queryable()
+    public IQueryable<TAggregateRoot> AsQueryable()
     {
         throw new NotImplementedException();
     }

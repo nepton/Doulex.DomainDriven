@@ -10,6 +10,39 @@
       <ProjectReference Include="..\Doulex.DomainDriven\Doulex.DomainDriven.csproj" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <PackageId>Doulex.DomainDriven.Repo.FileSystem</PackageId>
+        <Description>The File system based implement of Domain Driven Design Framework</Description>
+        <PackageTags>doulex;ddd;domain;framework;file;</PackageTags>
+        <PackageProjectUrl>https://github.com/nepton/Doulex.DomainDriven</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/nepton/Doulex.DomainDriven.git</RepositoryUrl>
+
+        <Authors>Nepton Liu</Authors>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <IncludeSymbols>True</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(APPVEYOR)' == 'true'">
+        <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+        <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
     <ItemGroup>
       <PackageReference Include="DeepCloner" Version="0.10.4" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

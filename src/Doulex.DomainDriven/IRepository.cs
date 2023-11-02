@@ -56,14 +56,6 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     Task RemoveAsync(TKey id, CancellationToken cancel = default);
 
     /// <summary>
-    /// Remove the entity from the repository
-    /// </summary>
-    /// <param name="predicate">The condition of query</param>
-    /// <param name="cancel"></param>
-    /// <returns></returns>
-    Task RemoveAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default);
-
-    /// <summary>
     /// Find the entity by the given key
     /// The different with FindAsync is that FindAsync is search local cache in first, if not found, then search database. 
     /// </summary>
@@ -144,5 +136,5 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     /// Get the queryable of entities in the repository
     /// </summary>
     /// <returns></returns>
-    IQueryable<TAggregateRoot> Queryable();
+    IQueryable<TAggregateRoot> AsQueryable();
 }
