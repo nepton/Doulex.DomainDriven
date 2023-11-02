@@ -64,18 +64,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// Add new entity to the repository or update the entity in the repository if the id of entity has existed 
     /// </summary>
     /// <param name="aggregateRoot"></param>
+    /// <param name="mode">The mode indicates that how to save the entity to the repository</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public async Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    public Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, SaveMode mode, CancellationToken cancel = default)
     {
-        var exists = await ExistsAsync(aggregateRoot.Id, cancel);
-        if (exists)
+        return mode switch
         {
-            await UpdateAsync(aggregateRoot, cancel);
-            return;
-        }
-
-        await AddAsync(aggregateRoot, cancel);
+            SaveMode.Update => UpdateAsync(aggregateRoot, cancel),
+            SaveMode.Add    => AddAsync(aggregateRoot, cancel),
+            _               => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+        };
     }
 
     /// <summary>

@@ -10,7 +10,7 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     where TKey : notnull
 {
     private readonly FileSystemUnitOfWork _unitOfWork;
-    private readonly EntityCaching    _caching;
+    private readonly EntityCaching        _caching;
 
     public FileSystemRepository(FileSystemUnitOfWork unitOfWork)
     {
@@ -38,11 +38,18 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     /// Add new entity to the repository or update the entity in the repository if the id of entity has existed 
     /// </summary>
     /// <param name="aggregateRoot"></param>
+    /// <param name="mode"></param>
     /// <param name="cancel"></param>
     /// <returns>Return true if the entity has been added, or return false if the entity has been updated</returns>
-    public Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default)
+    public Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, SaveMode mode, CancellationToken cancel = default)
     {
-        _unitOfWork.Enqueue(typeof(TAggregateRoot), PendingAction.AddOrUpdate, aggregateRoot);
+        var pendingAction = mode switch
+        {
+            SaveMode.Update => PendingAction.Update,
+            SaveMode.Add    => PendingAction.Add,
+            _               => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+        };
+        _unitOfWork.Enqueue(typeof(TAggregateRoot), pendingAction, aggregateRoot);
         return Task.CompletedTask;
     }
 

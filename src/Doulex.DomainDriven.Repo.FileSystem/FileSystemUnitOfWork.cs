@@ -13,8 +13,8 @@ public class FileSystemUnitOfWork : IUnitOfWork
     private readonly ConcurrentQueue<Pending> _pending = new();
 
     private readonly FileSystemOptions _options;
-    private readonly EntityPersistence        _entityFile;
-    private readonly EntityCaching _cache;
+    private readonly EntityPersistence _entityFile;
+    private readonly EntityCaching     _cache;
 
     public FileSystemUnitOfWork(FileSystemOptions options)
     {
@@ -38,11 +38,10 @@ public class FileSystemUnitOfWork : IUnitOfWork
     {
         var key = working.Action switch
         {
-            PendingAction.Add         => (working.Object as IAggregateRoot)?.Id,
-            PendingAction.Update      => (working.Object as IAggregateRoot)?.Id,
-            PendingAction.AddOrUpdate => (working.Object as IAggregateRoot)?.Id,
-            PendingAction.Remove      => working.Object,
-            _                         => throw new ArgumentOutOfRangeException()
+            PendingAction.Add    => (working.Object as IAggregateRoot)?.Id,
+            PendingAction.Update => (working.Object as IAggregateRoot)?.Id,
+            PendingAction.Remove => working.Object,
+            _                    => throw new ArgumentOutOfRangeException()
         };
         return key;
     }
@@ -75,16 +74,6 @@ public class FileSystemUnitOfWork : IUnitOfWork
                         throw new InvalidOperationException("The object is not IAggregateRoot");
 
                     await _entityFile.UpdateAsync(agg, cancel);
-                    _cache.AddOrUpdateCache(agg);
-
-                    break;
-                }
-                case PendingAction.AddOrUpdate:
-                {
-                    if (working.Object is not IAggregateRoot agg)
-                        throw new InvalidOperationException("The object is not IAggregateRoot");
-
-                    await _entityFile.AddOrUpdateAsync(agg, cancel);
                     _cache.AddOrUpdateCache(agg);
 
                     break;

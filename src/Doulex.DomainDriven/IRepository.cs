@@ -26,10 +26,11 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     /// <summary>
     /// Add new entity to the repository or update the entity in the repository if the id of entity has existed 
     /// </summary>
-    /// <param name="aggregateRoot"></param>
+    /// <param name="aggregateRoot">The entity to add or update</param>
+    /// <param name="mode">The mode of attach</param>
     /// <param name="cancel"></param>
     /// <returns>Return true if the entity has been added, or return false if the entity has been updated</returns>
-    Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel = default);
+    Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, SaveMode mode, CancellationToken cancel = default);
 
     /// <summary>
     /// Update the exists entity in the repository

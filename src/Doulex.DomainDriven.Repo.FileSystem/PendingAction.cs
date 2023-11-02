@@ -4,6 +4,5 @@ internal enum PendingAction
 {
     Add,
     Update,
-    AddOrUpdate,
     Remove
 }
