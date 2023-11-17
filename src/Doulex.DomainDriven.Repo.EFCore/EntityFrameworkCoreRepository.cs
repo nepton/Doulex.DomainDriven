@@ -209,9 +209,9 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns>Returns the number of entities</returns>
-    public Task<long> CountAsync(CancellationToken cancel = default)
+    public Task<int> CountAsync(CancellationToken cancel = default)
     {
-        return _dbSet.LongCountAsync(cancel);
+        return _dbSet.CountAsync(cancel);
     }
 
     /// <summary>
@@ -220,7 +220,28 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="predicate">The condition of query</param>
     /// <param name="cancel"></param>
     /// <returns>Returns the number of entities</returns>
-    public Task<long> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    public Task<int> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    {
+        return _dbSet.CountAsync(predicate, cancel);
+    }
+
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<long> LongCountAsync(CancellationToken cancel = default)
+    {
+        return _dbSet.LongCountAsync(cancel);
+    }
+
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="predicate">The query condition</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<long> LongCountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
         return _dbSet.LongCountAsync(predicate, cancel);
     }

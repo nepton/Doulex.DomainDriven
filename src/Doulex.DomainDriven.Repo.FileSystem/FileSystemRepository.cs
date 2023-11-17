@@ -229,10 +229,10 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns>Returns the number of entities</returns>
-    public Task<long> CountAsync(CancellationToken cancel = default)
+    public Task<int> CountAsync(CancellationToken cancel = default)
     {
         var count = _caching.Count<TAggregateRoot>(null);
-        return Task.FromResult(count);
+        return Task.FromResult((int) count);
     }
 
     /// <summary>
@@ -241,7 +241,31 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     /// <param name="predicate">The condition of query</param>
     /// <param name="cancel"></param>
     /// <returns>Returns the number of entities</returns>
-    public Task<long> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    public Task<int> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    {
+        var func  = predicate.Compile();
+        var count = _caching.Count(func);
+        return Task.FromResult((int) count);
+    }
+
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<long> LongCountAsync(CancellationToken cancel = default)
+    {
+        var count = _caching.Count<TAggregateRoot>(null);
+        return Task.FromResult(count);
+    }
+
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="predicate">The query condition</param>
+    /// <param name="cancel"></param>
+    /// <returns></returns>
+    public Task<long> LongCountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
         var func  = predicate.Compile();
         var count = _caching.Count(func);
