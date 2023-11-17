@@ -1,6 +1,5 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using Z.EntityFramework.Plus;
 
 // ReSharper disable VirtualMemberNeverOverridden.Global
 
@@ -77,14 +76,6 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
         return Task.Run(() => _dbSet.Update(aggregateRoot), cancel);
     }
 
-    public virtual async Task UpdateAsync(
-        Expression<Func<TAggregateRoot, bool>>           predicate,
-        Expression<Func<TAggregateRoot, TAggregateRoot>> updateFactory,
-        CancellationToken                                cancel = default)
-    {
-        await _dbSet.Where(predicate).UpdateAsync(updateFactory, cancel);
-    }
-
     /// <summary>
     /// Remove the entity from the repository
     /// </summary>
@@ -101,20 +92,13 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="id">The id of entity</param>
     /// <param name="cancel">The cancellation token</param>
     /// <returns>Return true if the entity has been removed, false if the entity cannot be found</returns>
-    public virtual Task RemoveAsync(TKey id, CancellationToken cancel = default)
+    public virtual async Task RemoveAsync(TKey id, CancellationToken cancel = default)
     {
-        return _dbSet.Where(x => x.Id.Equals(id)).DeleteAsync(cancel);
-    }
+        var entity = await GetAsync(id, cancel);
+        if (entity is null)
+            return;
 
-    /// <summary>
-    /// Remove the entity from the repository
-    /// </summary>
-    /// <param name="predicate">The condition of query</param>
-    /// <param name="cancel"></param>
-    /// <returns></returns>
-    public Task RemoveAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
-    {
-        return _dbSet.Where(predicate).DeleteAsync(cancel);
+        await RemoveAsync(entity, cancel);
     }
 
     /// <summary>
