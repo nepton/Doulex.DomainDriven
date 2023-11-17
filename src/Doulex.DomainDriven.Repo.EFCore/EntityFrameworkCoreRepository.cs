@@ -220,13 +220,34 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
         return _dbSet.AnyAsync(predicate, cancel);
     }
 
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="cancel"></param>
+    /// <returns>Returns the number of entities</returns>
+    public Task<long> CountAsync(CancellationToken cancel = default)
+    {
+        return _dbSet.LongCountAsync(cancel);
+    }
+
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="cancel"></param>
+    /// <returns>Returns the number of entities</returns>
+    public Task<long> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    {
+        return _dbSet.LongCountAsync(predicate, cancel);
+    }
+
     #endregion
 
     /// <summary>
     /// Get the queryable object of the repository
     /// </summary>
     /// <returns></returns>
-    public IQueryable<TAggregateRoot> Queryable()
+    public IQueryable<TAggregateRoot> AsQueryable()
     {
         return _dbSet.AsNoTracking().AsQueryable();
     }

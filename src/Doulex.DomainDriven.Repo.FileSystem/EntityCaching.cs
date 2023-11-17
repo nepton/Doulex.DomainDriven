@@ -88,4 +88,16 @@ public class EntityCaching
 
         return cache;
     }
+
+    public long Count<TAggregateRoot>(Func<TAggregateRoot, bool>? predicate) where TAggregateRoot : class, IAggregateRoot, IEntity
+    {
+        var type  = typeof(TAggregateRoot);
+        var cache = _cache.GetOrAdd(type, LoadCache);
+        var q     = cache.Values.Select(x => (TAggregateRoot) x.AggregateRoot);
+
+        if (predicate != null)
+            q = q.Where(predicate);
+
+        return q.LongCount();
+    }
 }

@@ -225,10 +225,34 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     }
 
     /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="cancel"></param>
+    /// <returns>Returns the number of entities</returns>
+    public Task<long> CountAsync(CancellationToken cancel = default)
+    {
+        var count = _caching.Count<TAggregateRoot>(null);
+        return Task.FromResult(count);
+    }
+
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="cancel"></param>
+    /// <returns>Returns the number of entities</returns>
+    public Task<long> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    {
+        var func  = predicate.Compile();
+        var count = _caching.Count(func);
+        return Task.FromResult(count);
+    }
+
+    /// <summary>
     /// Get the queryable of entities in the repository
     /// </summary>
     /// <returns></returns>
-    public IQueryable<TAggregateRoot> Queryable()
+    public IQueryable<TAggregateRoot> AsQueryable()
     {
         throw new NotImplementedException();
     }

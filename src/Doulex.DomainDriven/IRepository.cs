@@ -141,8 +141,23 @@ public interface IRepository<TAggregateRoot, in TKey> : IRepository
     Task<bool> ExistsAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default);
 
     /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="cancel"></param>
+    /// <returns>Returns the number of entities</returns>
+    Task<long> CountAsync(CancellationToken cancel = default);
+
+    /// <summary>
+    /// Count the entities in the repository
+    /// </summary>
+    /// <param name="predicate">The condition of query</param>
+    /// <param name="cancel"></param>
+    /// <returns>Returns the number of entities</returns>
+    Task<long> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default);
+
+    /// <summary>
     /// Get the queryable of entities in the repository
     /// </summary>
     /// <returns></returns>
-    IQueryable<TAggregateRoot> Queryable();
+    IQueryable<TAggregateRoot> AsQueryable();
 }
