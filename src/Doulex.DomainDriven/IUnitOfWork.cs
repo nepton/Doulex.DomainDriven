@@ -33,6 +33,11 @@ public interface IUnitOfWork
     bool HasActiveTransaction { get; }
 
     /// <summary>
+    /// Indicate whether the unit of work support nested transaction
+    /// </summary>
+    bool SupportNestedTransaction { get; }
+
+    /// <summary>
     /// Indicate whether the unit of work support transaction
     /// </summary>
     /// <returns></returns>

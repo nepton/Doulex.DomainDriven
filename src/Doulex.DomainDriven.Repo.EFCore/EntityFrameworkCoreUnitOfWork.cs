@@ -30,6 +30,16 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// </summary>
     public virtual bool HasActiveTransaction => _context.Database.CurrentTransaction != null;
 
+
+    /// <summary>
+    /// Indicate whether the unit of work support nested transaction
+    /// </summary>
+    /// <remarks>
+    /// Set true if your database support nested transaction, otherwise set false.
+    /// The default value is false.
+    /// </remarks>
+    public bool SupportNestedTransaction { get; set; } = false;
+
     /// <summary>
     /// Indicate whether the unit of work support transaction
     /// </summary>
@@ -43,7 +53,7 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// <returns></returns>
     public virtual async Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (HasActiveTransaction)
+        if (HasActiveTransaction && !SupportNestedTransaction)
             throw new InvalidOperationException("Transaction already started");
 
         var tran = await _context.Database.BeginTransactionAsync(cancellationToken);

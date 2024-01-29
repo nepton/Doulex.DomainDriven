@@ -123,6 +123,12 @@ public class FileSystemUnitOfWork : IUnitOfWork
     /// </summary>
     public bool HasActiveTransaction => false;
 
+
+    /// <summary>
+    /// Indicate whether the unit of work support nested transaction
+    /// </summary>
+    public bool SupportNestedTransaction => false;
+
     /// <summary>
     /// Indicate whether the unit of work support transaction
     /// </summary>
