@@ -38,13 +38,13 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// Set true if your database support nested transaction, otherwise set false.
     /// The default value is false.
     /// </remarks>
-    public bool SupportNestedTransaction { get; set; } = false;
+    public virtual bool SupportNestedTransaction => false;
 
     /// <summary>
     /// Indicate whether the unit of work support transaction
     /// </summary>
     /// <returns></returns>
-    public bool SupportTransaction => true;
+    public virtual bool SupportTransaction => true;
 
     /// <summary>
     /// Begin a transaction
@@ -53,6 +53,9 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// <returns></returns>
     public virtual async Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
     {
+        if (!SupportTransaction)
+            throw new InvalidOperationException("Transaction not supported");
+
         if (HasActiveTransaction && !SupportNestedTransaction)
             throw new InvalidOperationException("Transaction already started");
 
@@ -69,6 +72,9 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// <returns></returns>
     public virtual Task UseTransactionAsync(ITransaction transaction, CancellationToken cancellationToken = default(CancellationToken))
     {
+        if (!SupportTransaction)
+            throw new InvalidOperationException("Transaction not supported");
+
         if (transaction is not EntityFrameworkCoreTransaction tran)
             throw new ArgumentException("The transaction is not EntityFrameworkCoreTransaction");
 
