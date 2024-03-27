@@ -2,7 +2,7 @@ version: '{build}'
 
 
 environment:
-  VERSION: 1.5.1
+  VERSION: 1.5.2
   TARGET_CONFIGURATION: Release
 
 image: Visual Studio 2022

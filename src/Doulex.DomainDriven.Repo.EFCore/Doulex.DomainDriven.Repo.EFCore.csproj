@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
@@ -40,9 +40,14 @@
         <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="$(TargetFramework.StartsWith('net6.0'))">
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.4" />
+    </ItemGroup>
+
+    <ItemGroup Condition="$(TargetFramework.StartsWith('net8.0'))">
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.3" />
     </ItemGroup>
 
     <ItemGroup>
