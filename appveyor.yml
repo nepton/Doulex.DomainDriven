@@ -25,6 +25,8 @@ before_build:
 
 build_script:
 - cmd: >-
+    dotnet build Doulex.DomainDriven.sln -c %TARGET_CONFIGURATION%
+
     dotnet pack .\src\Doulex.DomainDriven -c %TARGET_CONFIGURATION% -p:VersionPrefix=%VERSION%
 
     dotnet pack .\src\Doulex.DomainDriven.Repo.EFCore -c %TARGET_CONFIGURATION% -p:VersionPrefix=%VERSION%
