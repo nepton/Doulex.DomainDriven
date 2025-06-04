@@ -1,7 +1,7 @@
 ﻿namespace Doulex.DomainDriven;
 
 /// <summary>
-/// The mode of attach
+/// The mode of attachment
 /// </summary>
 public enum SaveMode
 {
