@@ -1,12 +1,15 @@
 version: '{build}'
 
-
 environment:
   VERSION: 1.6.1
   TARGET_CONFIGURATION: Release
 
-image: Visual Studio 2022
-platform: Any CPU
+image: 
+  - Visual Studio 2022
+  - Ubuntu
+
+platform: 
+  - Any CPU
 
 branches:
   only:
