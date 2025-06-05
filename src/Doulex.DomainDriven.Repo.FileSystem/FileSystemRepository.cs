@@ -36,7 +36,7 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     }
 
     /// <summary>
-    /// Add a new entity to the repository or update the entity in the repository if the id of entity has existed 
+    /// Add new entity to the repository or update the entity in the repository if the id of entity has existed 
     /// </summary>
     /// <param name="aggregateRoot"></param>
     /// <param name="mode"></param>
@@ -60,7 +60,7 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     }
 
     /// <summary>
-    /// Update the existed entity in the repository
+    /// Update the exists entity in the repository
     /// </summary>
     /// <param name="aggregateRoot"></param>
     /// <param name="cancel"></param>
@@ -138,7 +138,7 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
 
     /// <summary>
     /// Find the entity by precondition
-    /// The different with FindAsync is that FindAsync is search local cache in first, if not found, then search database, But GetAsync will search a database directly. 
+    /// The different with FindAsync is that FindAsync is search local cache in first, if not found, then search database. But GetAsync will search database directly. 
     /// </summary>
     /// <param name="predicate">The condition of query</param>
     /// <param name="cancel"></param>
@@ -237,7 +237,7 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     public Task<int> CountAsync(CancellationToken cancel = default)
     {
         var count = _caching.Count<TAggregateRoot>(null);
-        return Task.FromResult((int)count);
+        return Task.FromResult((int) count);
     }
 
     /// <summary>
@@ -250,7 +250,7 @@ public class FileSystemRepository<TAggregateRoot, TKey> : IRepository<TAggregate
     {
         var func  = predicate.Compile();
         var count = _caching.Count(func);
-        return Task.FromResult((int)count);
+        return Task.FromResult((int) count);
     }
 
     /// <summary>
