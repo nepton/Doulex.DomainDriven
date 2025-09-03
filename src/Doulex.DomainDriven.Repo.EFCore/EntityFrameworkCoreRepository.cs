@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Doulex.DomainDriven.Exceptions;
 
 // ReSharper disable VirtualMemberNeverOverridden.Global
 
@@ -69,37 +70,45 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
 
     public async Task AddOrUpdateAsync(TAggregateRoot aggregateRoot, CancellationToken cancel)
     {
-        var entry = _context.Entry(aggregateRoot);
-
-        // Case 1: Entity is already tracked by the current DbContext
-        if (entry.State != EntityState.Detached)
+        try
         {
-            await UpdateAsync(aggregateRoot, cancel);
-            return;
-        }
+            var entry = _context.Entry(aggregateRoot);
 
-        // Case 2: Entity is not tracked, we try to find it in the database using the primary key
-        var entityType    = _context.Model.FindEntityType(typeof(TAggregateRoot));
-        var keyProperties = entityType?.FindPrimaryKey()?.Properties;
-
-        if (keyProperties is { Count: > 0 })
-        {
-            var keyValues      = keyProperties.Select(p => p.PropertyInfo?.GetValue(aggregateRoot)).ToArray();
-            var existingEntity = await _context.Set<TAggregateRoot>().FindAsync(keyValues, cancel);
-
-            if (existingEntity != null)
+            // Case 1: Entity is already tracked by the current DbContext
+            if (entry.State != EntityState.Detached)
             {
                 await UpdateAsync(aggregateRoot, cancel);
+                return;
+            }
+
+            // Case 2: Entity is not tracked, we try to find it in the database using the primary key
+            var entityType    = _context.Model.FindEntityType(typeof(TAggregateRoot));
+            var keyProperties = entityType?.FindPrimaryKey()?.Properties;
+
+            if (keyProperties is { Count: > 0 })
+            {
+                var keyValues      = keyProperties.Select(p => p.PropertyInfo?.GetValue(aggregateRoot)).ToArray();
+                var existingEntity = await _context.Set<TAggregateRoot>().FindAsync(keyValues, cancel);
+
+                if (existingEntity != null)
+                {
+                    await UpdateAsync(aggregateRoot, cancel);
+                }
+                else
+                {
+                    await AddAsync(aggregateRoot, cancel);
+                }
             }
             else
             {
+                // Use "add" if the entity does not have a primary key
                 await AddAsync(aggregateRoot, cancel);
             }
         }
-        else
+        catch (Exception ex)
         {
-            // Use "add" if the entity does not have a primary key
-            await AddAsync(aggregateRoot, cancel);
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "AddOrUpdate");
+            throw translatedEx;
         }
     }
 
@@ -141,14 +150,22 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     }
 
     /// <summary>
-    /// Find the entity by the given key 
+    /// Find the entity by the given key
     /// </summary>
     /// <param name="id"></param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public virtual Task<TAggregateRoot?> GetAsync(TKey id, CancellationToken cancel = default)
+    public virtual async Task<TAggregateRoot?> GetAsync(TKey id, CancellationToken cancel = default)
     {
-        return _dbSet.FindAsync(new object?[] { id }, cancel).AsTask();
+        try
+        {
+            return await _dbSet.FindAsync(new object?[] { id }, cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "Get");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -157,9 +174,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="predicate">The condition of query</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<TAggregateRoot?> GetAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    public async Task<TAggregateRoot?> GetAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.FirstOrDefaultAsync(predicate, cancel);
+        try
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate, cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "Get");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -170,10 +195,18 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="take">Indicate that how many records will be taken</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int skip, int take, CancellationToken cancel = default)
+    public async Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, int skip, int take, CancellationToken cancel = default)
     {
-        var query = _dbSet.Where(predicate);
-        return query.Skip(skip).Take(take).ToArrayAsync(cancel);
+        try
+        {
+            var query = _dbSet.Where(predicate);
+            return await query.Skip(skip).Take(take).ToArrayAsync(cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "GetAll");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -182,9 +215,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="predicate">The condition of query</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    public async Task<TAggregateRoot[]> GetAllAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.Where(predicate).ToArrayAsync(cancel);
+        try
+        {
+            return await _dbSet.Where(predicate).ToArrayAsync(cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "GetAll");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -194,9 +235,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="take">Indicate that how many records will be taken</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<TAggregateRoot[]> GetAllAsync(int skip, int take, CancellationToken cancel = default)
+    public async Task<TAggregateRoot[]> GetAllAsync(int skip, int take, CancellationToken cancel = default)
     {
-        return _dbSet.Skip(skip).Take(take).ToArrayAsync(cancel);
+        try
+        {
+            return await _dbSet.Skip(skip).Take(take).ToArrayAsync(cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "GetAll");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -204,9 +253,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<TAggregateRoot[]> GetAllAsync(CancellationToken cancel = default)
+    public async Task<TAggregateRoot[]> GetAllAsync(CancellationToken cancel = default)
     {
-        return _dbSet.ToArrayAsync(cancel);
+        try
+        {
+            return await _dbSet.ToArrayAsync(cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "GetAll");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -215,9 +272,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="id">The id to find in db</param>
     /// <param name="cancel">The cancellation token</param>
     /// <returns>Return true if entity has existed</returns>
-    public Task<bool> ExistsAsync(TKey id, CancellationToken cancel = default)
+    public async Task<bool> ExistsAsync(TKey id, CancellationToken cancel = default)
     {
-        return _dbSet.AnyAsync(x => x.Id.Equals(id), cancel);
+        try
+        {
+            return await _dbSet.AnyAsync(x => x.Id.Equals(id), cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "Exists");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -226,9 +291,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="predicate">The finding predicate</param>
     /// <param name="cancel">The cancellation token</param>
     /// <returns>Return true if entity has existed</returns>
-    public Task<bool> ExistsAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    public async Task<bool> ExistsAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.AnyAsync(predicate, cancel);
+        try
+        {
+            return await _dbSet.AnyAsync(predicate, cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "Exists");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -236,9 +309,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns>Returns the number of entities</returns>
-    public Task<int> CountAsync(CancellationToken cancel = default)
+    public async Task<int> CountAsync(CancellationToken cancel = default)
     {
-        return _dbSet.CountAsync(cancel);
+        try
+        {
+            return await _dbSet.CountAsync(cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "Count");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -247,9 +328,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="predicate">The condition of query</param>
     /// <param name="cancel"></param>
     /// <returns>Returns the number of entities</returns>
-    public Task<int> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    public async Task<int> CountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.CountAsync(predicate, cancel);
+        try
+        {
+            return await _dbSet.CountAsync(predicate, cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "Count");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -257,9 +346,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<long> LongCountAsync(CancellationToken cancel = default)
+    public async Task<long> LongCountAsync(CancellationToken cancel = default)
     {
-        return _dbSet.LongCountAsync(cancel);
+        try
+        {
+            return await _dbSet.LongCountAsync(cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "LongCount");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -268,9 +365,17 @@ public class EntityFrameworkCoreRepository<TAggregateRoot, TKey> : IRepository<T
     /// <param name="predicate">The query condition</param>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public Task<long> LongCountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
+    public async Task<long> LongCountAsync(Expression<Func<TAggregateRoot, bool>> predicate, CancellationToken cancel = default)
     {
-        return _dbSet.LongCountAsync(predicate, cancel);
+        try
+        {
+            return await _dbSet.LongCountAsync(predicate, cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "LongCount");
+            throw translatedEx;
+        }
     }
 
     #endregion

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Doulex.DomainDriven.Exceptions;
 
 namespace Doulex.DomainDriven.Repo.EFCore;
 
@@ -20,9 +21,17 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// </summary>
     /// <param name="cancel"></param>
     /// <returns></returns>
-    public virtual Task<int> SaveChangesAsync(CancellationToken cancel = default)
+    public virtual async Task<int> SaveChangesAsync(CancellationToken cancel = default)
     {
-        return _context.SaveChangesAsync(cancel);
+        try
+        {
+            return await _context.SaveChangesAsync(cancel);
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "SaveChanges");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -53,15 +62,34 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// <returns></returns>
     public virtual async Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (!SupportTransaction)
-            throw new InvalidOperationException("Transaction not supported");
+        try
+        {
+            if (!SupportTransaction)
+                throw new DbTransactionException("Transaction not supported")
+                {
+                    FailedOperation = TransactionOperation.Begin,
+                    TransactionState = TransactionState.NotStarted
+                };
 
-        if (HasActiveTransaction && !SupportNestedTransaction)
-            throw new InvalidOperationException("Transaction already started");
+            if (HasActiveTransaction && !SupportNestedTransaction)
+                throw new DbTransactionException("Transaction already started")
+                {
+                    FailedOperation = TransactionOperation.Begin,
+                    TransactionState = TransactionState.Active
+                };
 
-        var tran = await _context.Database.BeginTransactionAsync(cancellationToken);
-
-        return new EntityFrameworkCoreTransaction(tran);
+            var tran = await _context.Database.BeginTransactionAsync(cancellationToken);
+            return new EntityFrameworkCoreTransaction(tran);
+        }
+        catch (DbTransactionException)
+        {
+            throw; // Re-throw our domain exceptions as-is
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "BeginTransaction");
+            throw translatedEx;
+        }
     }
 
     /// <summary>
@@ -70,14 +98,34 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
     /// <param name="transaction"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public virtual Task UseTransactionAsync(ITransaction transaction, CancellationToken cancellationToken = default(CancellationToken))
+    public virtual async Task UseTransactionAsync(ITransaction transaction, CancellationToken cancellationToken = default(CancellationToken))
     {
-        if (!SupportTransaction)
-            throw new InvalidOperationException("Transaction not supported");
+        try
+        {
+            if (!SupportTransaction)
+                throw new DbTransactionException("Transaction not supported")
+                {
+                    FailedOperation = TransactionOperation.Begin,
+                    TransactionState = TransactionState.NotStarted
+                };
 
-        if (transaction is not EntityFrameworkCoreTransaction tran)
-            throw new ArgumentException("The transaction is not EntityFrameworkCoreTransaction");
+            if (transaction is not EntityFrameworkCoreTransaction tran)
+                throw new DbTransactionException("The transaction is not EntityFrameworkCoreTransaction")
+                {
+                    FailedOperation = TransactionOperation.Begin,
+                    TransactionState = TransactionState.NotStarted
+                };
 
-        return _context.Database.UseTransactionAsync(tran.CurrentTransaction?.GetDbTransaction(), cancellationToken);
+            await _context.Database.UseTransactionAsync(tran.CurrentTransaction?.GetDbTransaction(), cancellationToken);
+        }
+        catch (DbTransactionException)
+        {
+            throw; // Re-throw our domain exceptions as-is
+        }
+        catch (Exception ex)
+        {
+            var translatedEx = ExceptionTranslator.TranslateException(ex, "UseTransaction");
+            throw translatedEx;
+        }
     }
 }

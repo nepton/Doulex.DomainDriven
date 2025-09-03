@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
+using Doulex.DomainDriven.Exceptions;
 
 namespace Doulex.DomainDriven.Repo.EFCore;
 
@@ -28,9 +29,22 @@ public class EntityFrameworkCoreTransaction : ITransaction
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public virtual Task CommitAsync(CancellationToken cancellationToken = default)
+    public virtual async Task CommitAsync(CancellationToken cancellationToken = default)
     {
-        return CurrentTransaction.CommitAsync(cancellationToken);
+        try
+        {
+            await CurrentTransaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            var domainEx = new DbTransactionException("Transaction commit failed", ex)
+            {
+                TransactionId = TransactionId,
+                FailedOperation = TransactionOperation.Commit,
+                TransactionState = TransactionState.RolledBack
+            };
+            throw domainEx;
+        }
     }
 
     /// <summary>
@@ -38,9 +52,22 @@ public class EntityFrameworkCoreTransaction : ITransaction
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public virtual Task RollbackAsync(CancellationToken cancellationToken = default)
+    public virtual async Task RollbackAsync(CancellationToken cancellationToken = default)
     {
-        return CurrentTransaction.RollbackAsync(cancellationToken);
+        try
+        {
+            await CurrentTransaction.RollbackAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            var domainEx = new DbTransactionException("Transaction rollback failed", ex)
+            {
+                TransactionId = TransactionId,
+                FailedOperation = TransactionOperation.Rollback,
+                TransactionState = TransactionState.Aborted
+            };
+            throw domainEx;
+        }
     }
 
     /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
