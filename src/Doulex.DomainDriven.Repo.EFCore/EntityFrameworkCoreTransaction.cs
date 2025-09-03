@@ -37,7 +37,7 @@ public class EntityFrameworkCoreTransaction : ITransaction
         }
         catch (Exception ex)
         {
-            var domainEx = new DbTransactionException("Transaction commit failed", ex)
+            var domainEx = new RepoTransactionException("Transaction commit failed", ex)
             {
                 TransactionId = TransactionId,
                 FailedOperation = TransactionOperation.Commit,
@@ -60,7 +60,7 @@ public class EntityFrameworkCoreTransaction : ITransaction
         }
         catch (Exception ex)
         {
-            var domainEx = new DbTransactionException("Transaction rollback failed", ex)
+            var domainEx = new RepoTransactionException("Transaction rollback failed", ex)
             {
                 TransactionId = TransactionId,
                 FailedOperation = TransactionOperation.Rollback,

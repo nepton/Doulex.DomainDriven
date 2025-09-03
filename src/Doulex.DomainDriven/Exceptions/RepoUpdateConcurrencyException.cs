@@ -1,30 +1,28 @@
-﻿namespace Doulex.DomainDriven.Exceptions;
+namespace Doulex.DomainDriven.Exceptions;
 
 /// <summary>
 /// Database update concurrency exception
 /// Thrown when multiple users simultaneously update the same data causing a concurrency conflict
 /// </summary>
-public class DbUpdateConcurrencyException : DbUpdateException
+public class RepoUpdateConcurrencyException : RepoUpdateException
 {
     /// <summary>
     /// Initializes a new instance of the DbUpdateConcurrencyException class
     /// </summary>
-    public DbUpdateConcurrencyException() : base("Database concurrency update conflict")
+    public RepoUpdateConcurrencyException() : base("Database concurrency update conflict")
     {
         ErrorCode = "DB_CONCURRENCY_CONFLICT";
         Severity = ExceptionSeverity.Warning;
-        IsRetryable = true;
     }
 
     /// <summary>
     /// Initializes a new instance of the DbUpdateConcurrencyException class with a specified error message
     /// </summary>
     /// <param name="message">The message that describes the error</param>
-    public DbUpdateConcurrencyException(string message) : base(message)
+    public RepoUpdateConcurrencyException(string message) : base(message)
     {
         ErrorCode = "DB_CONCURRENCY_CONFLICT";
         Severity = ExceptionSeverity.Warning;
-        IsRetryable = true;
     }
 
     /// <summary>
@@ -32,11 +30,10 @@ public class DbUpdateConcurrencyException : DbUpdateException
     /// </summary>
     /// <param name="message">The error message that explains the reason for the exception</param>
     /// <param name="innerException">The exception that is the cause of the current exception</param>
-    public DbUpdateConcurrencyException(string message, Exception innerException) : base(message, innerException)
+    public RepoUpdateConcurrencyException(string message, Exception innerException) : base(message, innerException)
     {
         ErrorCode = "DB_CONCURRENCY_CONFLICT";
         Severity = ExceptionSeverity.Warning;
-        IsRetryable = true;
     }
 
     /// <summary>

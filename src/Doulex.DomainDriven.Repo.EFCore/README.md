@@ -16,18 +16,13 @@ The `ExceptionTranslator` automatically converts Entity Framework Core exception
 
 ### EF Core Exception → Domain Exception Mapping
 
-| EF Core Exception | Domain Exception | Retryable | Description |
-|-------------------|------------------|-----------|-------------|
-| `DbUpdateConcurrencyException` | `DbUpdateConcurrencyException` | ✅ | Optimistic concurrency conflicts |
-| `DbUpdateException` (constraint) | `DbConstraintViolationException` | ❌ | Primary key, foreign key, unique constraints |
-| `DbUpdateException` (deadlock) | `DbDeadlockException` | ✅ | Database deadlocks |
-| `DbUpdateException` (validation) | `DbValidationException` | ❌ | Data validation failures |
-| `DbUpdateException` (generic) | `DbUpdateException` | ✅ | General update failures |
-| `TimeoutException` | `DbTimeoutException` | ✅ | Operation timeouts |
-| `DbException` (connection) | `DbConnectionException` | ✅ | Connection failures |
-| `DbException` (permission) | `DbPermissionException` | ❌ | Permission denied |
-| `DbException` (storage) | `DbStorageException` | ❌ | Storage issues |
-| `InvalidOperationException` (transaction) | `DbTransactionException` | ❌ | Transaction failures |
+| EF Core Exception                | Domain Exception                 | Description                                                 |
+|----------------------------------|----------------------------------|-------------------------------------------------------------|
+| `RepoUpdateConcurrencyException` | `RepoUpdateConcurrencyException` | Optimistic concurrency conflicts                            |
+| `RepoUpdateException`            | `RepoUpdateException`            | General database update failures                            |
+| `TimeoutException`               | `RepoTimeoutException`           | Operation timeouts                                          |
+| `RepoException`                  | `RepoUpdateException`            | All database-specific errors (reliable, no message parsing) |
+| `InvalidOperationException`      | `RepoTransactionException`       | Transaction failures                                        |
 
 ## Usage Examples
 
@@ -48,12 +43,12 @@ public class UserService
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
-        catch (DbConstraintViolationException ex) when (ex.ConstraintType == ConstraintType.Unique)
+        catch (RepoUpdateException ex)
         {
-            _logger.LogWarning("User with email {Email} already exists", user.Email);
-            throw new ExistsException($"User with email {user.Email} already exists");
+            _logger.LogError("Database update failed: {Message}", ex.Message);
+            throw;
         }
-        catch (DbValidationException ex)
+        catch (RepoValidationException ex)
         {
             _logger.LogError("User validation failed: {Errors}", 
                 string.Join(", ", ex.ValidationErrors.Select(e => e.ErrorMessage)));
@@ -78,30 +73,29 @@ public async Task<bool> UpdateUserWithRetryAsync(User user, int maxRetries = 3)
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
-        catch (DbUpdateConcurrencyException ex) when (ex.IsRetryable)
+        catch (RepoUpdateConcurrencyException ex)
         {
             retryCount++;
-            _logger.LogWarning("Concurrency conflict (attempt {Attempt}): {Message}", 
+            _logger.LogWarning("Concurrency conflict (attempt {Attempt}): {Message}",
                 retryCount, ex.Message);
-            
+
             if (retryCount >= maxRetries)
                 throw;
-                
+
             // Exponential backoff
             await Task.Delay(TimeSpan.FromMilliseconds(100 * Math.Pow(2, retryCount - 1)));
         }
-        catch (DbDeadlockException ex) when (ex.ShouldRetry)
+        catch (RepoTimeoutException ex)
         {
             retryCount++;
-            _logger.LogWarning("Deadlock detected (attempt {Attempt}): {Message}", 
+            _logger.LogWarning("Timeout detected (attempt {Attempt}): {Message}",
                 retryCount, ex.Message);
-            
+
             if (retryCount >= maxRetries)
                 throw;
-                
-            // Random delay to avoid thundering herd
-            var random = new Random();
-            await Task.Delay(TimeSpan.FromMilliseconds(random.Next(50, 200)));
+
+            // Wait before retry
+            await Task.Delay(TimeSpan.FromMilliseconds(500));
         }
     }
     
@@ -129,7 +123,7 @@ public async Task<bool> TransferDataAsync(int fromId, int toId, decimal amount)
         
         return true;
     }
-    catch (DbTransactionException ex)
+    catch (RepoTransactionException ex)
     {
         _logger.LogError("Transaction failed: {Operation} - {Message}", 
             ex.FailedOperation, ex.Message);
@@ -157,19 +151,14 @@ public async Task<User?> GetUserSafelyAsync(int userId)
     {
         return await _userRepository.GetAsync(userId);
     }
-    catch (DbConnectionException ex)
-    {
-        _logger.LogError("Database connection failed: {Reason}", ex.FailureReason);
-        throw;
-    }
-    catch (DbTimeoutException ex)
+    catch (RepoTimeoutException ex)
     {
         _logger.LogWarning("Query timed out after {Timeout}s", ex.TimeoutSeconds);
         throw;
     }
-    catch (DbPermissionException ex)
+    catch (RepoUpdateException ex)
     {
-        _logger.LogError("Permission denied for operation: {Operation}", ex.Operation);
+        _logger.LogError("Database operation failed: {Message}", ex.Message);
         throw;
     }
 }
@@ -179,41 +168,27 @@ public async Task<User?> GetUserSafelyAsync(int userId)
 
 Each domain exception includes rich context information:
 
-### DbUpdateConcurrencyException
+### RepoUpdateException
+
+- `OperationType`: Type of operation that failed
+- `AffectedEntitiesCount`: Number of entities affected
+
+### RepoUpdateConcurrencyException
+
 - `EntityType`: Type of conflicting entity
-- `EntityId`: ID of conflicting entity  
+- `EntityId`: ID of conflicting entity
 - `CurrentVersion`: Current database version
 - `AttemptedVersion`: Version that was attempted
 
-### DbConstraintViolationException
-- `ConstraintType`: Type of violated constraint
-- `ConstraintName`: Name of violated constraint
-- `TableName`: Affected table name
-- `ColumnName`: Affected column name
-- `ViolatingValue`: Value that caused violation
-
-### DbDeadlockException
-- `VictimTransactionId`: ID of deadlock victim transaction
-- `InvolvedResources`: List of resources involved in deadlock
-- `DetectionTime`: When deadlock was detected
-- `DeadlockType`: Type of deadlock
-- `ShouldRetry`: Whether retry is recommended
-
-### DbConnectionException
-- `ServerAddress`: Database server address
-- `DatabaseName`: Database name
-- `FailureReason`: Specific reason for connection failure
-- `ConnectionString`: Connection string (sensitive data masked)
-
 ## Best Practices
 
-1. **Always handle retryable exceptions** with appropriate retry logic
+1. **Implement retry logic** for appropriate exceptions (concurrency, timeout)
 2. **Log exception context** for debugging and monitoring
 3. **Use structured logging** with exception properties
-4. **Implement circuit breaker patterns** for connection failures
-5. **Monitor exception patterns** to identify systemic issues
-6. **Handle constraint violations gracefully** with user-friendly messages
-7. **Use transactions appropriately** and always handle rollbacks
+4. **Monitor exception patterns** to identify systemic issues
+5. **Handle database errors gracefully** with user-friendly messages
+6. **Use transactions appropriately** and always handle rollbacks
+7. **Avoid message-based exception detection** - rely on exception types only
 
 ## Configuration
 
@@ -222,6 +197,7 @@ The exception translation is automatic and requires no configuration. However, y
 ## Monitoring and Alerting
 
 Set up monitoring for:
+
 - `Critical` and `Fatal` severity exceptions
 - High frequency of retryable exceptions
 - Connection failure patterns

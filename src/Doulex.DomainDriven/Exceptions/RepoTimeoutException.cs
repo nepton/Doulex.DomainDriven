@@ -4,27 +4,27 @@
 /// Database operation timeout exception
 /// Thrown when a database operation execution time exceeds the preset timeout
 /// </summary>
-public class DbTimeoutException : DomainDrivenException
+public class RepoTimeoutException : DomainDrivenException
 {
     /// <summary>
     /// Initializes a new instance of the DbTimeoutException class
     /// </summary>
-    public DbTimeoutException() : base("Database operation timeout")
+    public RepoTimeoutException() : base("Database operation timeout")
     {
         ErrorCode = "DB_TIMEOUT";
         Severity = ExceptionSeverity.Error;
-        IsRetryable = true;
+
     }
 
     /// <summary>
     /// Initializes a new instance of the DbTimeoutException class with a specified error message
     /// </summary>
     /// <param name="message">The message that describes the error</param>
-    public DbTimeoutException(string message) : base(message)
+    public RepoTimeoutException(string message) : base(message)
     {
         ErrorCode = "DB_TIMEOUT";
         Severity = ExceptionSeverity.Error;
-        IsRetryable = true;
+
     }
 
     /// <summary>
@@ -32,11 +32,11 @@ public class DbTimeoutException : DomainDrivenException
     /// </summary>
     /// <param name="message">The error message that explains the reason for the exception</param>
     /// <param name="innerException">The exception that is the cause of the current exception</param>
-    public DbTimeoutException(string message, Exception innerException) : base(message, innerException)
+    public RepoTimeoutException(string message, Exception innerException) : base(message, innerException)
     {
         ErrorCode = "DB_TIMEOUT";
         Severity = ExceptionSeverity.Error;
-        IsRetryable = true;
+
     }
 
     /// <summary>

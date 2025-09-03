@@ -1,4 +1,4 @@
-﻿namespace Doulex.DomainDriven.Exceptions;
+namespace Doulex.DomainDriven.Exceptions;
 
 /// <summary>
 /// Base exception class for domain-driven design framework
@@ -48,10 +48,7 @@ public abstract class DomainDrivenException : Exception
     /// </summary>
     public virtual ExceptionSeverity Severity { get; set; } = ExceptionSeverity.Error;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the operation can be retried
-    /// </summary>
-    public virtual bool IsRetryable { get; set; } = false;
+
 
     /// <summary>
     /// Gets additional context information

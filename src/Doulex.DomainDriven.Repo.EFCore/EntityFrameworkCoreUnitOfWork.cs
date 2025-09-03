@@ -65,14 +65,14 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
         try
         {
             if (!SupportTransaction)
-                throw new DbTransactionException("Transaction not supported")
+                throw new RepoTransactionException("Transaction not supported")
                 {
                     FailedOperation = TransactionOperation.Begin,
                     TransactionState = TransactionState.NotStarted
                 };
 
             if (HasActiveTransaction && !SupportNestedTransaction)
-                throw new DbTransactionException("Transaction already started")
+                throw new RepoTransactionException("Transaction already started")
                 {
                     FailedOperation = TransactionOperation.Begin,
                     TransactionState = TransactionState.Active
@@ -81,7 +81,7 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
             var tran = await _context.Database.BeginTransactionAsync(cancellationToken);
             return new EntityFrameworkCoreTransaction(tran);
         }
-        catch (DbTransactionException)
+        catch (RepoTransactionException)
         {
             throw; // Re-throw our domain exceptions as-is
         }
@@ -103,14 +103,14 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
         try
         {
             if (!SupportTransaction)
-                throw new DbTransactionException("Transaction not supported")
+                throw new RepoTransactionException("Transaction not supported")
                 {
                     FailedOperation = TransactionOperation.Begin,
                     TransactionState = TransactionState.NotStarted
                 };
 
             if (transaction is not EntityFrameworkCoreTransaction tran)
-                throw new DbTransactionException("The transaction is not EntityFrameworkCoreTransaction")
+                throw new RepoTransactionException("The transaction is not EntityFrameworkCoreTransaction")
                 {
                     FailedOperation = TransactionOperation.Begin,
                     TransactionState = TransactionState.NotStarted
@@ -118,7 +118,7 @@ public class EntityFrameworkCoreUnitOfWork : IUnitOfWork
 
             await _context.Database.UseTransactionAsync(tran.CurrentTransaction?.GetDbTransaction(), cancellationToken);
         }
-        catch (DbTransactionException)
+        catch (RepoTransactionException)
         {
             throw; // Re-throw our domain exceptions as-is
         }

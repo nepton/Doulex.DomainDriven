@@ -4,27 +4,25 @@
 /// Database update exception
 /// Thrown when a database update operation fails
 /// </summary>
-public class DbUpdateException : DomainDrivenException
+public class RepoUpdateException : DomainDrivenException
 {
     /// <summary>
     /// Initializes a new instance of the DbUpdateException class
     /// </summary>
-    public DbUpdateException() : base("Database update operation failed")
+    public RepoUpdateException() : base("Database update operation failed")
     {
         ErrorCode = "DB_UPDATE_FAILED";
         Severity = ExceptionSeverity.Error;
-        IsRetryable = true;
     }
 
     /// <summary>
     /// Initializes a new instance of the DbUpdateException class with a specified error message
     /// </summary>
     /// <param name="message">The message that describes the error</param>
-    public DbUpdateException(string message) : base(message)
+    public RepoUpdateException(string message) : base(message)
     {
         ErrorCode = "DB_UPDATE_FAILED";
         Severity = ExceptionSeverity.Error;
-        IsRetryable = true;
     }
 
     /// <summary>
@@ -32,11 +30,10 @@ public class DbUpdateException : DomainDrivenException
     /// </summary>
     /// <param name="message">The error message that explains the reason for the exception</param>
     /// <param name="innerException">The exception that is the cause of the current exception</param>
-    public DbUpdateException(string message, Exception innerException) : base(message, innerException)
+    public RepoUpdateException(string message, Exception innerException) : base(message, innerException)
     {
         ErrorCode = "DB_UPDATE_FAILED";
         Severity = ExceptionSeverity.Error;
-        IsRetryable = true;
     }
 
     /// <summary>

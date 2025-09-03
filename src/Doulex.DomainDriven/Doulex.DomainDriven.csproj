@@ -39,4 +39,8 @@
         <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
         <None Include="..\..\readme.md" Pack="true" PackagePath="\" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Exceptions\DbConstraintViolationException.cs" />
+    </ItemGroup>
 </Project>

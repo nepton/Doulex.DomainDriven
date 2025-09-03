@@ -1,4 +1,4 @@
-﻿// Global exception type imports
+// Global exception type imports
 // This file provides global access to all database-related exceptions
 
 global using Doulex.DomainDriven.Exceptions;
